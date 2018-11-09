@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_mysqldb import MySQL
 from wtforms import Form, StringField, TextAreaField, PasswordField, validators
 
@@ -63,6 +63,8 @@ def add_note():
         mysql.connection.commit()
         cur.close()
 
+        flash('Agregaste la nota exitosamente', 'success')
+
         return redirect(url_for('add_note'))
 
     return render_template('add_note.html', form=form)
@@ -94,10 +96,34 @@ def edit_note(id):
         mysql.connection.commit()
         cur.close()
 
+        flash('Modificaste la nota exitosamente', 'success')
+
         return redirect(url_for('my_notes'))
 
     return render_template('edit_note.html', form = form)
 
+
+@app.route('/delete-note/<string:id>', methods = ['POST'])
+def delete_note(id):
+
+    # Abrir la base
+    cur = mysql.connection.cursor()
+
+    # Execute query
+    cur.execute("DELETE FROM notes WHERE id = %s", (id))
+
+    # Commit DB
+    mysql.connection.commit()
+    
+    # Cerrar la base
+    cur.close()
+
+    flash('Eliminaste la nota exitosamente', 'success')
+
+    return redirect(url_for('my_notes'))
+
+
 if __name__ == '__main__':      # Cuando el archivo sea el "main" entonces ejecuta la app
+    app.secret_key = 'secret12345'
     app.run(debug=True) 
 

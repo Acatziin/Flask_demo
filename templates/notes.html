@@ -11,10 +11,13 @@
             </div>
             <div class="card-body">
               <blockquote class="blockquote mb-0">
-                <!--<p>{{ note.description }}</p>-->
                 <footer class="blockquote-footer">Autor: {{ note.id}} <cite title="Source Title">el {{note.created_at}} </cite></footer>
-                <h6><a href="/note/{{ note.id }}" class="card-link">ver descripción</a></h6>
-                <h6><a href="/edit-note/{{ note.id }}" class="card-link">editar nota</a></h6>
+                <h6><a href="/note/{{ note.id }}" class="card-link">Ver </a></h6>
+                <h6><a href="/edit-note/{{ note.id }}" class="card-link">Editar </a></h6>
+                <form action="{{url_for('delete_note', id=note.id)}}" method = "POST">
+                  <input type="hidden" name="_method" value="DELETE">
+                  <input type="submit" value="Borrar" class="btn btn-danger">
+                </form>
               </blockquote>
             </div>
           </div>
