@@ -2,7 +2,7 @@
 
 {% block body %}
 
-<h1>My notes</h1>
+<h1>Mis notas</h1>
 <ul>
     {% for note in notes %}
     <div class="card">
@@ -12,8 +12,9 @@
             <div class="card-body">
               <blockquote class="blockquote mb-0">
                 <!--<p>{{ note.description }}</p>-->
-                <footer class="blockquote-footer">Autor: {{ note.author }} <cite title="Source Title">el {{note.date}} </cite></footer>
+                <footer class="blockquote-footer">Autor: {{ note.id}} <cite title="Source Title">el {{note.created_at}} </cite></footer>
                 <h6><a href="/note/{{ note.id }}" class="card-link">ver descripción</a></h6>
+                <h6><a href="/edit-note/{{ note.id }}" class="card-link">editar nota</a></h6>
               </blockquote>
             </div>
           </div>

@@ -16,21 +16,31 @@ app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 # Init MySQL
 mysql = MySQL(app)
 
-@app.route('/')                 # Definición de ruta
+@app.route('/')                                  # Definición de ruta
 def index():
     return render_template('home.html')
 
-@app.route('/notes')                 # Definición de ruta
+@app.route('/notes')                             # Mostrar lectura de notas
 def my_notes():
-    return render_template('notes.html')
+    cur = mysql.connection.cursor()
+    result = cur.execute("SELECT * FROM notes")
+    mysql.connection.commit()
+    notes = cur.fetchall()
+    cur.close()
 
-#@app.route('/note/<string:id>/')                 # Definición de ruta
-#def note(id):
-#    for note in notes:
-#        if note['id'] == int(id):
-#            data = note
-#            break
-#    return render_template('note.html', note = data)
+    if result > 0:
+        return render_template('notes.html', notes = notes)
+    else:
+        return render_template('Sin datos')
+
+    
+@app.route('/note/<string:id>/')                 # Petición de una sola nota
+def note(id):
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM notes WHERE id = %s", (id))
+    note = cur.fetchone()
+    cur.close()
+    return render_template('note.html', note = note)
 
 class NoteForm(Form):
     title = StringField('Title', [validators.Length(min=1, max=45)])
@@ -44,20 +54,49 @@ def add_note():
         title = form.title.data
         description = form.description.data
 
-        # Create cursor
+        # Abrir la base
         cur = mysql.connection.cursor()
 
-        # Execute
+        # Execute query
         cur.execute("INSERT INTO notes(title, description) VALUES (%s, %s)", (title, description))
 
         mysql.connection.commit()
-
         cur.close()
 
         return redirect(url_for('add_note'))
 
     return render_template('add_note.html', form=form)
 
+
+@app.route('/edit-note/<string:id>', methods = ['GET', 'POST'])
+def edit_note(id):
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM notes WHERE id = %s", (id))
+    note = cur.fetchone()
+    cur.close()
+
+    form = NoteForm(request.form)
+
+    form.title.data = note['title']
+    form.description.data = note['description']
+
+    if request.method == 'POST' and form.validate:
+
+        title = request.form['title']
+        description = request.form['description']
+
+        # Abrir la base
+        cur = mysql.connection.cursor()
+
+        # Execute query
+        cur.execute("UPDATE notes SET title = %s, description = %s WHERE id = %s", (title,description,id))
+
+        mysql.connection.commit()
+        cur.close()
+
+        return redirect(url_for('my_notes'))
+
+    return render_template('edit_note.html', form = form)
 
 if __name__ == '__main__':      # Cuando el archivo sea el "main" entonces ejecuta la app
     app.run(debug=True) 
