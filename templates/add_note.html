@@ -5,6 +5,7 @@
     <h1>Agrega una nota</h1>
 
     <form method="POST" action="">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         {% from 'includes/_formhelpers.html' import render_field %}
         <div class="from-group">
             {{ render_field(form.title, class_="form-control")}}

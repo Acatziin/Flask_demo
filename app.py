@@ -1,7 +1,8 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_mysqldb import MySQL
-from wtforms import Form, StringField, TextAreaField, PasswordField, validators
-
+from passlib.hash import sha256_crypt
+from flask_wtf import CSRFProtect
+import forms
 
 app = Flask(__name__)           # Toma el nombre del archivo para inicializar en la clase
 # notes = Notes()
@@ -15,6 +16,7 @@ app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 
 # Init MySQL
 mysql = MySQL(app)
+csrf = CSRFProtect(app)
 
 @app.route('/')                                  # Definición de ruta
 def index():
@@ -42,13 +44,10 @@ def note(id):
     cur.close()
     return render_template('note.html', note = note)
 
-class NoteForm(Form):
-    title = StringField('Title', [validators.Length(min=1, max=45)])
-    description = TextAreaField('Description', [validators.Length(min=5)])
 
 @app.route('/add-note', methods = ['GET', 'POST'])
 def add_note():
-    form = NoteForm(request.form)
+    form = forms.NoteForm(request.form)
 
     if request.method == 'POST' and form.validate():
         title = form.title.data
@@ -77,7 +76,7 @@ def edit_note(id):
     note = cur.fetchone()
     cur.close()
 
-    form = NoteForm(request.form)
+    form = forms.NoteForm(request.form)
 
     form.title.data = note['title']
     form.description.data = note['description']
@@ -123,7 +122,50 @@ def delete_note(id):
     return redirect(url_for('my_notes'))
 
 
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+  form = forms.RegisterForm(request.form)
+  if request.method == 'POST' and form.validate():
+    name = form.name.data
+    email = form.email.data
+    username = form.username.data
+    password = sha256_crypt.encrypt(str(form.password.data))
+     # Create cursor
+    cur = mysql.connection.cursor()
+     # Execute query
+    cur.execute("INSERT INTO users(name, email, username, password) VALUES(%s, %s, %s, %s)", (name, email, username, password))
+     # Commit to DB
+    mysql.connection.commit()
+     # Close connection
+    cur.close()
+    flash('Estás registrado y puedes acceder', 'success')
+    return redirect(url_for('index'))
+  
+  return render_template("register.html", form = form)
+
+  
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+  form = forms.RegisterForm(request.form)
+  if request.method == 'POST' and form.validate():
+    username = form.username.data
+    password = sha256_crypt.encrypt(str(form.password.data))
+     # Create cursor
+    cur = mysql.connection.cursor()
+     # Execute query
+    cur.execute("INSERT INTO users(name, email, username, password) VALUES(%s, %s, %s, %s)", (name, email, username, password))
+     # Commit to DB
+    mysql.connection.commit()
+     # Close connection
+    cur.close()
+    flash('Usuario válido', 'success')
+    return redirect(url_for('index'))
+  
+  return render_template("login.html", form = form)
+
+
 if __name__ == '__main__':      # Cuando el archivo sea el "main" entonces ejecuta la app
     app.secret_key = 'secret12345'
     app.run(debug=True) 
 
+# Ataque CNF
