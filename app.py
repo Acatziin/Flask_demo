@@ -21,7 +21,7 @@ csrf = CSRFProtect(app)
 @app.route('/')                                  # Definición de ruta
 def index():
     if 'logged_in' in session:
-        message = "{}".format(session['username'])
+        message = "Notas de {}".format(session['username'])
     else:
         message = "Notas"
     
@@ -136,28 +136,29 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
   form = forms.LoginForm(request.form)
+  
   if request.method == 'POST' and form.validate():
     username = form.username.data
-    print(username)
     password_candidate = form.password.data
 
     # Lógica
-    
-    cur = mysql.connection.cursor()
-    cur.execute("SELECT password FROM users WHERE username = %s", (username))
-    print(cur['password'])
-    password = cur['password']
-    cur.close()
+    try:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT password FROM users WHERE username = %s", [username])
+        result = cur.fetchone()
+        print(result)
+        cur.close()
 
-    if sha256_crypt.verify(password_candidate, str(password)):
-        session['logged_in'] = True
-        session['username'] = username
-        return render_template('home.html', message = message)
+        if sha256_crypt.verify(password_candidate, str(result['password'])):
+            session['logged_in'] = True
+            session['username'] = username
+            return redirect(url_for('index'))
+        else:
+            flash('Usuario y/o Contraseña inválida', 'danger')
+            
+    except:
+        flash('Usuario y/o Contraseña inválida', 'danger')
 
-    flash('Usuario y/o Contraseña inválida', 'danger')
-
-    return redirect(url_for('index'))
-  
   return render_template("login.html", form = form)
 
 
