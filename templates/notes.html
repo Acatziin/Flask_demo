@@ -2,25 +2,31 @@
 
 {% block body %}
 
+{% if notes %}
 <h1>Mis notas</h1>
-<ul>
+  <ul>
     {% for note in notes %}
-    <div class="card">
-            <div class="card-header">
-              {{ note.title }}
-            </div>
-            <div class="card-body">
-              <blockquote class="blockquote mb-0">
-                <footer class="blockquote-footer">Autor: {{ note.id}} <cite title="Source Title">el {{note.created_at}} </cite></footer>
-                <h6><a href="/note/{{ note.id }}" class="card-link">Ver </a></h6>
-                <h6><a href="/edit-note/{{ note.id }}" class="card-link">Editar </a></h6>
-                <form action="{{url_for('delete_note', id=note.id)}}" method = "POST">
-                  <input type="hidden" name="_method" value="DELETE">
-                  <input type="submit" value="Borrar" class="btn btn-danger">
-                </form>
-              </blockquote>
-            </div>
-          </div>
+      <div class="card">
+        <div class="card-header">
+          {{ note.title }}
+        </div>
+        <div class="card-body">
+          <blockquote class="blockquote mb-0">
+          <footer class="blockquote-footer">Autor: {{ note.id}} <cite title="Source Title">el {{note.created_at}} </cite></footer>
+          <h6><a href="/note/{{ note.id }}" class="card-link">Ver </a></h6>
+          <h6><a href="/edit-note/{{ note.id }}" class="card-link">Editar </a></h6>
+          <form action="{{url_for('delete_note', id=note.id)}}" method = "POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <input type="hidden" name="_method" value="DELETE">
+            <input type="submit" value="Borrar" class="btn btn-danger">
+          </form>
+          </blockquote>
+        </div>
+      </div>
     {% endfor %}
-</ul>
+  </ul>
+{% else %}
+  <h1>No tienes notas aún</h1>
+{% endif %}
+
 {% endblock %}

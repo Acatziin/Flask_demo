@@ -30,7 +30,7 @@ def index():
 @app.route('/notes')                             # Mostrar lectura de notas
 def my_notes():
     cur = mysql.connection.cursor()
-    result = cur.execute("SELECT * FROM notes")
+    result = cur.execute("SELECT * FROM notes WHERE user_id = %s", [session['user_id']])
     mysql.connection.commit()
     notes = cur.fetchall()
     cur.close()
@@ -38,7 +38,8 @@ def my_notes():
     if result > 0:
         return render_template('notes.html', notes = notes)
     else:
-        return render_template('Sin datos')
+        return render_template('notes.html')
+        
 
     
 @app.route('/note/<string:id>/')                 # Petición de una sola nota
@@ -59,7 +60,7 @@ def add_note():
         description = form.description.data
 
         cur = mysql.connection.cursor()
-        cur.execute("INSERT INTO notes(title, description) VALUES (%s, %s)", (title, description))
+        cur.execute("INSERT INTO notes(title, description, user_id) VALUES (%s, %s, %s)", (title, description, session['user_id']))
         mysql.connection.commit()
         cur.close()
 
@@ -130,7 +131,7 @@ def register():
     flash('Estás registrado y puedes acceder', 'success')
     return redirect(url_for('index'))
   
-  return render_template("register.html", form = form)
+  return render_template("login.html", form = form)
 
   
 @app.route('/login', methods=['GET', 'POST'])
@@ -144,7 +145,7 @@ def login():
     # Lógica
     try:
         cur = mysql.connection.cursor()
-        cur.execute("SELECT password FROM users WHERE username = %s", [username])
+        cur.execute("SELECT * FROM users WHERE username = %s", [username])
         result = cur.fetchone()
         print(result)
         cur.close()
@@ -152,10 +153,12 @@ def login():
         if sha256_crypt.verify(password_candidate, str(result['password'])):
             session['logged_in'] = True
             session['username'] = username
+            session['user_id'] = result['id']
+
             return redirect(url_for('index'))
         else:
             flash('Usuario y/o Contraseña inválida', 'danger')
-            
+
     except:
         flash('Usuario y/o Contraseña inválida', 'danger')
 
