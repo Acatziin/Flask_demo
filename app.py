@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_mysqldb import MySQL
 from passlib.hash import sha256_crypt
 from flask_wtf import CSRFProtect
@@ -20,7 +20,12 @@ csrf = CSRFProtect(app)
 
 @app.route('/')                                  # Definición de ruta
 def index():
-    return render_template('home.html')
+    if 'logged_in' in session:
+        message = "{}".format(session['username'])
+    else:
+        message = "Notas"
+    
+    return render_template('home.html', message = message)
 
 @app.route('/notes')                             # Mostrar lectura de notas
 def my_notes():
@@ -53,12 +58,8 @@ def add_note():
         title = form.title.data
         description = form.description.data
 
-        # Abrir la base
         cur = mysql.connection.cursor()
-
-        # Execute query
         cur.execute("INSERT INTO notes(title, description) VALUES (%s, %s)", (title, description))
-
         mysql.connection.commit()
         cur.close()
 
@@ -71,6 +72,7 @@ def add_note():
 
 @app.route('/edit-note/<string:id>', methods = ['GET', 'POST'])
 def edit_note(id):
+
     cur = mysql.connection.cursor()
     cur.execute("SELECT * FROM notes WHERE id = %s", (id))
     note = cur.fetchone()
@@ -86,12 +88,8 @@ def edit_note(id):
         title = request.form['title']
         description = request.form['description']
 
-        # Abrir la base
         cur = mysql.connection.cursor()
-
-        # Execute query
         cur.execute("UPDATE notes SET title = %s, description = %s WHERE id = %s", (title,description,id))
-
         mysql.connection.commit()
         cur.close()
 
@@ -105,16 +103,9 @@ def edit_note(id):
 @app.route('/delete-note/<string:id>', methods = ['POST'])
 def delete_note(id):
 
-    # Abrir la base
     cur = mysql.connection.cursor()
-
-    # Execute query
     cur.execute("DELETE FROM notes WHERE id = %s", (id))
-
-    # Commit DB
     mysql.connection.commit()
-    
-    # Cerrar la base
     cur.close()
 
     flash('Eliminaste la nota exitosamente', 'success')
@@ -130,14 +121,12 @@ def register():
     email = form.email.data
     username = form.username.data
     password = sha256_crypt.encrypt(str(form.password.data))
-     # Create cursor
+    
     cur = mysql.connection.cursor()
-     # Execute query
     cur.execute("INSERT INTO users(name, email, username, password) VALUES(%s, %s, %s, %s)", (name, email, username, password))
-     # Commit to DB
     mysql.connection.commit()
-     # Close connection
     cur.close()
+
     flash('Estás registrado y puedes acceder', 'success')
     return redirect(url_for('index'))
   
@@ -146,23 +135,37 @@ def register():
   
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-  form = forms.RegisterForm(request.form)
+  form = forms.LoginForm(request.form)
   if request.method == 'POST' and form.validate():
     username = form.username.data
-    password = sha256_crypt.encrypt(str(form.password.data))
-     # Create cursor
+    print(username)
+    password_candidate = form.password.data
+
+    # Lógica
+    
     cur = mysql.connection.cursor()
-     # Execute query
-    cur.execute("INSERT INTO users(name, email, username, password) VALUES(%s, %s, %s, %s)", (name, email, username, password))
-     # Commit to DB
-    mysql.connection.commit()
-     # Close connection
+    cur.execute("SELECT password FROM users WHERE username = %s", (username))
+    print(cur['password'])
+    password = cur['password']
     cur.close()
-    flash('Usuario válido', 'success')
+
+    if sha256_crypt.verify(password_candidate, str(password)):
+        session['logged_in'] = True
+        session['username'] = username
+        return render_template('home.html', message = message)
+
+    flash('Usuario y/o Contraseña inválida', 'danger')
+
     return redirect(url_for('index'))
   
   return render_template("login.html", form = form)
 
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('Cerraste sesión exitosamente', 'success')
+    return redirect(url_for('login'))
 
 if __name__ == '__main__':      # Cuando el archivo sea el "main" entonces ejecuta la app
     app.secret_key = 'secret12345'

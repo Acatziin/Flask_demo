@@ -13,5 +13,12 @@ class RegisterForm(Form):
     validators.DataRequired("Este campo es requerido")])
   password = PasswordField('Password', [
     validators.DataRequired(), 
-    validators.EqualTo("confirm",message='Password do not match')])
+    validators.EqualTo("confirm",message='Password do not match'),
+    validators.Length(min=4)])
   confirm = PasswordField('Confirm password')
+
+class LoginForm(Form):
+    username = StringField('Username', [
+      validators.required(),
+      validators.Length(min=4,max=45)])
+    password = PasswordField('Password', [validators.DataRequired()])
