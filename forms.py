@@ -18,10 +18,10 @@ class RegisterForm(Form):
   confirm = PasswordField('Confirmar contraseña')
 
 class LoginForm(Form):
-    username = StringField('Username', [
+    username = StringField('Nombre de usuario', [
       validators.required(),
       validators.Length(min=4,max=45)])
-    password = PasswordField('Password', [validators.DataRequired()])
+    password = PasswordField('Contraseña', [validators.DataRequired()])
 
 class EditDataForm(Form):
   name = StringField('Nombre', [validators.Length(min=1, max=45)])
