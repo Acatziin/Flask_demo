@@ -190,7 +190,7 @@ def edit_profile(id):
 
         name = request.form['name']
         email = request.form['email']
-        password = sha256_crypt.encrypt(str(request.form['password']))
+        password = request.form['password']
 
         cur = mysql.connection.cursor()
         if name != '':
@@ -198,6 +198,7 @@ def edit_profile(id):
         if email != '':
             cur.execute("UPDATE users SET email = %s WHERE id = %s", (email,id))
         if password != '':
+            password = sha256_crypt.encrypt(str(request.form['password']))
             cur.execute("UPDATE users SET password = %s WHERE id = %s", (password,id))
         mysql.connection.commit()
         cur.close()
