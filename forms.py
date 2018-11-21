@@ -6,19 +6,28 @@ class NoteForm(Form):
     description = TextAreaField('Description', [validators.Length(min=5)])
 
 class RegisterForm(Form):
-  name = StringField('Name', [validators.Length(min=1, max=45)])
-  username = StringField('Username', [validators.Length(min=4,max=45)])
-  email = EmailField('Email', [
+  name = StringField('Nombre', [validators.Length(min=1, max=45)])
+  username = StringField('Nombre de usuario', [validators.Length(min=4,max=45)])
+  email = EmailField('Correo electrónico', [
     validators.Email("Ingrese un email valido"),
     validators.DataRequired("Este campo es requerido")])
-  password = PasswordField('Password', [
+  password = PasswordField('Contraseña (mínimo 4 dìgitos)', [
     validators.DataRequired(), 
-    validators.EqualTo("confirm",message='Password do not match'),
+    validators.EqualTo("confirm",message = 'La contraseñas no coinciden'),
     validators.Length(min=4)])
-  confirm = PasswordField('Confirm password')
+  confirm = PasswordField('Confirmar contraseña')
 
 class LoginForm(Form):
     username = StringField('Username', [
       validators.required(),
       validators.Length(min=4,max=45)])
     password = PasswordField('Password', [validators.DataRequired()])
+
+class EditDataForm(Form):
+  name = StringField('Nombre', [validators.Length(min=1, max=45)])
+  email = EmailField('Correo electrónico', [
+    validators.Email("Ingrese un email valido")])
+  password = PasswordField('Contraseña (mínimo 4 dìgitos)', [
+    validators.EqualTo("confirm",message = 'La contraseñas no coinciden'),
+    validators.Length(min=4)])
+  confirm = PasswordField('Confirmar contraseña')

@@ -147,7 +147,6 @@ def login():
         cur = mysql.connection.cursor()
         cur.execute("SELECT * FROM users WHERE username = %s", [username])
         result = cur.fetchone()
-        print(result)
         cur.close()
 
         if sha256_crypt.verify(password_candidate, str(result['password'])):
@@ -171,8 +170,45 @@ def logout():
     flash('Cerraste sesión exitosamente', 'success')
     return redirect(url_for('login'))
 
+
+
+@app.route('/edit-profile/<string:id>', methods = ['GET', 'POST'])
+def edit_profile(id):
+
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM users WHERE id = %s", (id))
+    user = cur.fetchone()
+    cur.close()
+
+    form = forms.EditDataForm(request.form)
+
+    form.name.data = user['name']
+    form.email.data = user['email']
+    form.password.data = user['password']
+
+    if request.method == 'POST' and form.validate:
+
+        name = request.form['name']
+        email = request.form['email']
+        password = sha256_crypt.encrypt(str(request.form['password']))
+
+        cur = mysql.connection.cursor()
+        if name != '':
+            cur.execute("UPDATE users SET name = %s WHERE id = %s", (name,id))
+        if email != '':
+            cur.execute("UPDATE users SET email = %s WHERE id = %s", (email,id))
+        if password != '':
+            cur.execute("UPDATE users SET password = %s WHERE id = %s", (password,id))
+        mysql.connection.commit()
+        cur.close()
+
+        flash('Modificaste tus datos exitosamente', 'success')
+
+        return redirect(url_for('index'))
+
+    return render_template('edit_profile.html', form = form)
+
+    
 if __name__ == '__main__':      # Cuando el archivo sea el "main" entonces ejecuta la app
     app.secret_key = 'secret12345'
     app.run(debug=True) 
-
-# Ataque CNF
