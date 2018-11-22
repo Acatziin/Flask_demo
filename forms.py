@@ -24,10 +24,13 @@ class LoginForm(Form):
     password = PasswordField('Contraseña', [validators.DataRequired()])
 
 class EditDataForm(Form):
-  name = StringField('Nombre', [validators.Length(min=1, max=45)])
+  name = StringField('Nombre', [
+    validators.Length(min=1, max=45),
+    validators.DataRequired("Este campo es requerido")])
   email = EmailField('Correo electrónico', [
-    validators.Email("Ingrese un email valido")])
+    validators.Email("Ingrese un email valido"),
+    validators.DataRequired("Este campo es requerido")])
   password = PasswordField('Contraseña (mínimo 4 dìgitos)', [
-    validators.EqualTo("confirm",message = 'La contraseñas no coinciden'),
+    validators.EqualTo("confirm",message = 'Las contraseñas no coinciden'),
     validators.Length(min=4)])
   confirm = PasswordField('Confirmar contraseña')
