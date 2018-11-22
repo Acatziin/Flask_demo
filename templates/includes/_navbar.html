@@ -23,6 +23,12 @@
                     <li class="nav-item">
                             <a class="nav-link" href="/logout"> Salir </a>
                     </li>
+                    <form class="form-inline my-2 my-lg-0" method="POST" action="/search">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                        <input class="form-control mr-sm-2" type="text" aria-label="Search" name ="search">  
+                        <!-- placeholder="anota tu búsqueda"  -->
+                        <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Buscar</button>
+                    </form>
                 {% else %}
                     <li class="nav-item">
                         <a class="nav-link" href="/register"> Registro </a>
@@ -31,11 +37,6 @@
                             <a class="nav-link" href="/login"> Acceso </a>
                     </li>
                 {% endif %}
-
-            </ul>
-            <form class="form-inline my-2 my-lg-0">
-                <input class="form-control mr-sm-2" type="text" placeholder="anota tu búsqueda" aria-label="Search">
-                <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Buscar</button>
-            </form>
+            </ul>            
         </div>
     </nav>

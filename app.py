@@ -2,21 +2,22 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_mysqldb import MySQL
 from passlib.hash import sha256_crypt
 from flask_wtf import CSRFProtect
+from config import DevelopmentConfig
 import forms
 
 app = Flask(__name__)           # Toma el nombre del archivo para inicializar en la clase
-# notes = Notes()
 
-# Config MySQL
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = ''
-app.config['MYSQL_DB'] = 'flask_demo'
-app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
-
+app.config.from_object(DevelopmentConfig)
 # Init MySQL
 mysql = MySQL(app)
+# Init CSRF
 csrf = CSRFProtect(app)
+
+# Manejador de errores
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('error_404.html')
+
 
 @app.route('/')                                  # Definición de ruta
 def index():
@@ -209,7 +210,21 @@ def edit_profile(id):
 
     return render_template('edit_profile.html', form = form)
 
-    
+
+@app.route("/search", methods=['POST'])
+def search():
+    form = request.form
+    word = form['search']
+
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM notes WHERE (user_id = {}) AND (title LIKE '%{}%' OR description LIKE '%{}%')" .format(session['user_id'],word,word))
+    notes = cur.fetchall()
+    cur.close()
+    if notes:
+        return render_template('notes.html', notes = notes)
+    else:
+        return render_template('notes.html', word = word)
+
+
 if __name__ == '__main__':      # Cuando el archivo sea el "main" entonces ejecuta la app
-    app.secret_key = 'secret12345'
-    app.run(debug=True) 
+    app.run() 
